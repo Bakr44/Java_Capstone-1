@@ -3,7 +3,8 @@ package com.example.capstone1.Model;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.context.annotation.EnableMBeanExport;
+
+import java.util.ArrayList;
 
 @Data
 @AllArgsConstructor
@@ -18,10 +19,15 @@ public class Product {
 
     @NotNull(message = "Price can't be empty")
     @PositiveOrZero(message = "Price can't be negative number")
-    private Double price;
+    private Integer price;
 
     @NotEmpty(message = "CategoryID can't be empty")
     private String CategoryID;
 
+    //Extra credit
+
+    private ArrayList<ProductReview> reviews = new ArrayList<>();
+
+    private double averageRating;
 
 }

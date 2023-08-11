@@ -23,4 +23,6 @@ public class MerchantStock {
     @Min(value = 10,message = "Stock should be more than 10")
     private Integer stock;
 
+
+
 }

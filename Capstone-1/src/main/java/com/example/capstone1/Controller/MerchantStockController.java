@@ -2,6 +2,7 @@ package com.example.capstone1.Controller;
 
 import com.example.capstone1.ApiResponse.ApiResponse;
 import com.example.capstone1.Model.MerchantStock;
+import com.example.capstone1.Model.Product;
 import com.example.capstone1.Service.MerchantStockService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,37 @@ public class MerchantStockController {
         }return ResponseEntity.status(400).body(new ApiResponse("Merchant Stock Not Found!!"));
     }
 
+    @PostMapping("/addMoreStocks")
+    public ResponseEntity addMoreStocksToMerchantStock(@RequestBody @Valid MerchantStock merchantStock,Errors errors){
+        if (errors.hasErrors()){
+            String message=errors.getFieldError().getDefaultMessage();
+            return ResponseEntity.status(400).body(message);
+        }
+        if(merchantStockService.isAddMoreStocks(merchantStock)){
+            return ResponseEntity.status(200).body(new ApiResponse("Stocks Added Successfully"));
+        }
+        return ResponseEntity.status(400).body(new ApiResponse("Merchant stock not found for the given product and merchant ID"));
+    }
 
+
+
+
+
+    //return MerchantStock by MerchantStockID
+    @GetMapping("/search/{id}")
+    public ResponseEntity searchMerchantStock(@PathVariable Integer id){
+        MerchantStock isSearched=merchantStockService.searchID(id);
+        if (isSearched==null){
+            return ResponseEntity.status(400).body(new ApiResponse("Sorry Merchant Stock Not Found!!"));
+        }
+        return ResponseEntity.status(200).body(isSearched);
+    }
+
+    @GetMapping("/sort")
+    public ResponseEntity sortMerchantStock(){
+        return ResponseEntity.status(200).body(merchantStockService.sortMerchantStock());
+
+    }
 
 
 }

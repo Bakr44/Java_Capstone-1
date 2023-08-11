@@ -17,6 +17,8 @@ public class ProductService {
     }
 
 
+
+
     public void addProduct(Product product){
         products.add(product);
     }
@@ -56,5 +58,15 @@ public class ProductService {
         Comparator<Product> comparatorName=Comparator.comparing(Product::getName);
         Collections.sort(sortedProduct,comparatorName);
         return sortedProduct;
+    }
+
+    public Product getProductById(Integer productId) {
+        // Loop through Array of products or retrieve from database
+        for (Product product : products) {
+            if (product.getId().equals(productId)) {
+                return product;
+            }
+        }
+        return null; // Return null if product with given ID is not found
     }
 }

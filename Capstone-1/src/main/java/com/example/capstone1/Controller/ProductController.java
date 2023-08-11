@@ -2,6 +2,7 @@ package com.example.capstone1.Controller;
 
 import com.example.capstone1.ApiResponse.ApiResponse;
 import com.example.capstone1.Model.Product;
+import com.example.capstone1.Model.ProductReview;
 import com.example.capstone1.Service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -71,4 +72,36 @@ private final ProductService productService;
         return ResponseEntity.status(200).body(productService.sortProduct());
 
     }
+
+    @PostMapping("/{productId}/review")
+    public ResponseEntity addProductReview(@PathVariable Integer productId,@RequestBody @Valid ProductReview productReview,Errors errors) {
+      if (errors.hasErrors()){
+          String message=errors.getFieldError().getDefaultMessage();
+          return ResponseEntity.status(400).body(message);
+      }
+
+        Product product = productService.getProductById(productId);
+        if (product == null) {
+            return ResponseEntity.status(400).body("Product not found");
+    }
+        ProductReview newReview = new ProductReview(productReview.getReviewerName(), productReview.getRating(), productReview.getReviewText());
+//        if (product.getReviews()==null){
+//            return ResponseEntity.status(400).body("Product not found");
+//        }
+        if (product.getReviews() == null) {
+            product.setReviews(new ArrayList<>()); // Initialize the reviews list
+        }
+        product.getReviews().add(newReview);
+
+        double totalRating = product.getReviews().stream()
+                .mapToInt(ProductReview::getRating).sum();
+
+        int totalReviews = product.getReviews().size();
+        double averageRating = (double) totalRating / totalReviews;
+        product.setAverageRating(averageRating);
+
+        return ResponseEntity.status(201).body("Review added successfully");
+    }
+
+
 }

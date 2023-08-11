@@ -18,7 +18,7 @@ public class User {
     private String userName;
 
     @NotEmpty(message = "Password can't be empty")
-    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,}$",message = " have to be more than 6 length long, must have characters and digits")
     private String password;
 
     @NotEmpty(message = "Email can't be empty")
@@ -30,6 +30,10 @@ public class User {
     private String role;
 
     @NotNull(message = "Balance of user can't be empty")
-    @Positive(message = "Balance can't be negative ")
+    @PositiveOrZero(message = "Balance can't be negative ")
     private Integer balance;
+
+    public void deductBalance(Integer amount) {
+        this.balance -= amount;
+    }
 }
