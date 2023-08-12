@@ -60,4 +60,11 @@ public class MerchantService {
         Collections.sort(sortedMerchant,comparatorName);
         return sortedMerchant;
     }
+
+    public Merchant getMerchantByID(Integer merchantID){
+        for (Merchant merchant:merchants) {
+            if (merchant.getId().equals(merchantID));
+            return merchant;
+        }return null;//Return null if no merchant with the given ID is found
+    }
 }

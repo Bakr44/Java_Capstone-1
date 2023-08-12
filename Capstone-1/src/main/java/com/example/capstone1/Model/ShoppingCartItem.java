@@ -12,4 +12,5 @@ public class ShoppingCartItem {
 
     @Positive(message = "Quantity should be more than zero")
     private Integer quantity;
+
 }

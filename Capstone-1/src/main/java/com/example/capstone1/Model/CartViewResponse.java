@@ -10,5 +10,5 @@ import java.util.ArrayList;
 public class CartViewResponse {
     private String username;
     private ArrayList<CartItemResponse> cartItems;
-    private Integer totalCost;
+    private Double totalCost;
 }

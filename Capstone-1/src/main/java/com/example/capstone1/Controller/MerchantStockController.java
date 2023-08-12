@@ -1,9 +1,12 @@
 package com.example.capstone1.Controller;
 
 import com.example.capstone1.ApiResponse.ApiResponse;
+import com.example.capstone1.Model.Merchant;
 import com.example.capstone1.Model.MerchantStock;
 import com.example.capstone1.Model.Product;
+import com.example.capstone1.Service.MerchantService;
 import com.example.capstone1.Service.MerchantStockService;
+import com.example.capstone1.Service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +19,8 @@ import org.springframework.web.bind.annotation.*;
 public class MerchantStockController {
 
     private final MerchantStockService merchantStockService;
-
+    private final MerchantService merchantService;
+    private final ProductService productService;
 
     @GetMapping("/get")
     public ResponseEntity getAllMerchantStock(){
@@ -30,6 +34,14 @@ public class MerchantStockController {
         if (errors.hasErrors()){
             String message=errors.getFieldError().getDefaultMessage();
             return ResponseEntity.status(400).body(message);
+        }
+        Merchant merchant=merchantService.getMerchantByID(merchantStock.getMerchantID());
+        if (merchant==null){
+            return ResponseEntity.status(400).body(new ApiResponse("Merchant ID not Found"));
+        }
+        Product product=productService.getProductById(merchantStock.getProductID());
+        if (product==null){
+            return ResponseEntity.status(400).body(new ApiResponse("Product ID not Found"));
         }
         merchantStockService.addMerchantStock(merchantStock);
         return ResponseEntity.status(200).body(new ApiResponse("Merchant Stock Added Successfully"));

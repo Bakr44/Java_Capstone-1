@@ -21,11 +21,31 @@ public class MerchantStockService {
     public MerchantStock getMerchantStockProductIdMerchantId(Integer productId,Integer merchantId ){
             return merchantStocks.stream().filter(merchantStock -> merchantStock.getProductID().equals(productId) && merchantStock.getMerchantID().equals(merchantId)).findFirst().orElse(null);//Return null if no productID Or merchantID  found
     }
+    public MerchantStock getMerchantStockByProductId(Integer productId) {
+        return merchantStocks.stream()
+                .filter(merchantStock -> merchantStock.getProductID().equals(productId))
+                .findFirst()
+                .orElse(null);
+    }
 
     public void reduceStock(Integer productId, Integer merchantId){
         MerchantStock merchantStock=getMerchantStockProductIdMerchantId(productId,merchantId);
         if (merchantStock != null && merchantStock.getStock()>0)
             merchantStock.setStock(merchantStock.getStock()-1);
+    }
+
+    public void reduceStock(Integer productId, Integer merchantId, Integer quantity) {
+        MerchantStock merchantStock = getMerchantStockProductIdMerchantId(productId, merchantId);
+        if (merchantStock != null && merchantStock.getStock() >= quantity) {
+            merchantStock.setStock(merchantStock.getStock() - quantity);
+        }
+    }
+
+    public void increaseStock(Integer productId, Integer merchantId, Integer quantity) {
+        MerchantStock merchantStock = getMerchantStockProductIdMerchantId(productId, merchantId);
+        if (merchantStock != null) {
+            merchantStock.setStock(merchantStock.getStock() + quantity);
+        }
     }
 
 

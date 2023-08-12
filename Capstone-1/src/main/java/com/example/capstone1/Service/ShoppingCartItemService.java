@@ -27,8 +27,19 @@ public class ShoppingCartItemService {
         items.removeIf(item -> item.getProduct().getId().equals(product.getId()));
     }
 
-    public Integer calculateTotalCost() {
-        Integer totalCost = 0;
+
+
+//    public void removeQuantity(Product product, Integer quantity) {
+//        for (ShoppingCartItem item : items) {
+//            if (item.getProduct().getId().equals(product.getId())) {
+//                item.setRemovedQuantity(quantity);
+//                return;
+//            }
+//        }
+//    }
+
+    public Double calculateTotalCost() {
+        Double totalCost = 0.0;
         for (ShoppingCartItem item : items) {
             totalCost += item.getProduct().getPrice() * item.getQuantity();
         }
