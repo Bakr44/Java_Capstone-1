@@ -100,7 +100,7 @@ private final ProductService productService;
         double averageRating = (double) totalRating / totalReviews;
         product.setAverageRating(averageRating);
 
-        return ResponseEntity.status(201).body("Review added successfully");
+        return ResponseEntity.status(200).body("Review added successfully");
     }
 
 

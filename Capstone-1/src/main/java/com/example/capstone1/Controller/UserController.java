@@ -1,13 +1,8 @@
 package com.example.capstone1.Controller;
 
 import com.example.capstone1.ApiResponse.ApiResponse;
-import com.example.capstone1.Model.MerchantStock;
-import com.example.capstone1.Model.Product;
-import com.example.capstone1.Model.User;
-import com.example.capstone1.Service.MerchantService;
-import com.example.capstone1.Service.MerchantStockService;
-import com.example.capstone1.Service.ProductService;
-import com.example.capstone1.Service.UserService;
+import com.example.capstone1.Model.*;
+import com.example.capstone1.Service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -110,5 +105,104 @@ public class UserController {
         return ResponseEntity.status(200).body(userService.sortUser());
 
     }
+
+    private final ShoppingCartItemService shoppingCartItemService;
+
+    @PostMapping("/add-to-cart")
+    public ResponseEntity addToCart(@RequestParam Integer userID, @RequestParam Integer productId, @RequestParam  Integer quantity) {
+        if (quantity<=0){
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid quantity"));
+        }
+        User user = userService.getUserById(userID);
+        if (user == null) {
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
+        }
+
+        Product product = productService.getProductById(productId);
+        if (product == null) {
+            return ResponseEntity.status(400).body("Invalid product ID");
+        }
+
+        // Add the product to the user's shopping cart
+        shoppingCartItemService.addItem(product, quantity);
+
+        return ResponseEntity.status(200).body("Product added to cart");
+    }
+
+    @PostMapping("/remove-from-cart")
+    public ResponseEntity removeFromCart(@RequestParam Integer userID, @RequestParam Integer productId) {
+        User user=userService.getUserById(userID);
+        if (user==null){
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
+        }
+        Product product = productService.getProductById(productId);
+        if (product == null) {
+            return ResponseEntity.status(400).body("Product not found"); // Handle this case
+        }
+        shoppingCartItemService.removeItem(product);
+        return ResponseEntity.status(200).body("Product removed from cart");
+    }
+
+    @GetMapping("/view-cart")
+    public ResponseEntity viewCart(@RequestParam Integer userID) {
+        User user = userService.getUserById(userID);
+        if (user == null) {
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
+        }
+        ArrayList<ShoppingCartItem> cartItems = shoppingCartItemService.getItems();
+
+        // Create a response object or DTO to send cart items
+        ArrayList<CartItemResponse> cartItemResponses = new ArrayList<>();
+        for (ShoppingCartItem cartItem : cartItems) {
+            Product product = cartItem.getProduct();
+            int quantity = cartItem.getQuantity();
+            double itemTotal = product.getPrice() * quantity;
+
+            CartItemResponse cartItemResponse = new CartItemResponse(
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
+                    quantity,
+                    itemTotal
+            );
+            cartItemResponses.add(cartItemResponse);
+        }
+
+        CartViewResponse cartViewResponse = new CartViewResponse(
+                user.getUserName(),
+                cartItemResponses,
+                shoppingCartItemService.calculateTotalCost()
+        );
+
+        return ResponseEntity.status(200).body(cartViewResponse);
+        // Return ResponseEntity with cart items
+    }
+
+
+    @PostMapping("/checkout")
+    public ResponseEntity checkout(@RequestParam(required = false) Integer userID) {
+        User user = userService.getUserById(userID);
+        if (user == null) {
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
+        }
+
+        Integer totalCost = shoppingCartItemService.calculateTotalCost();
+        if (user.getBalance() < totalCost) {
+            return ResponseEntity.status(400).body("Insufficient balance");
+        }
+        boolean isCartItemEmpty=shoppingCartItemService.isCartEmpty();
+        if (isCartItemEmpty){
+            return ResponseEntity.status(400).body(new ApiResponse("Cart is empty"));
+        }
+
+        // Deduct the total cost from user's balance
+        user.deductBalance(totalCost);
+
+        // Clear the shopping cart
+        shoppingCartItemService.clearCart();
+
+        return ResponseEntity.status(200).body("Checkout successful");
+    }
+
 
 }
