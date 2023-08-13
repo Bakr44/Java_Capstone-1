@@ -9,7 +9,7 @@ public class Discount {
     private String name;
     private double percentage;
 
-    public double calculateDiscount(Double amount) {
-        return amount * (percentage / 100.0);
-    }
+//    public double calculateDiscount(Double amount) {
+//        return amount * (percentage / 100.0);
+//    }
 }

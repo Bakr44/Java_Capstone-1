@@ -9,7 +9,7 @@ public class Coupon {
     private String code;
     private double discountAmount;
 
-    public double calculateDiscount(double amount) {
-        return Math.min(amount, discountAmount);
-    }
+//    public double calculateDiscount(double amount) {
+//        return Math.min(amount, discountAmount);
+//    }
 }

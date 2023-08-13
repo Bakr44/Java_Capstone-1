@@ -66,19 +66,19 @@ public class UserController {
         }
         MerchantStock merchantStock = merchantStockService.getMerchantStockProductIdMerchantId(productId, merchantId);
         if (merchantStock == null) {
-            return ResponseEntity.status(400).body("Invalid product ID or merchant ID");
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid product ID or merchant ID"));
         }
         if (merchantStock.getStock() <= 0) {
-            return ResponseEntity.status(400).body("Product is out of stock");
+            return ResponseEntity.status(400).body(new ApiResponse("Product is out of stock"));
         }
         Product product = productService.getProductById(productId);
         if (product == null) {
-            return ResponseEntity.status(400).body("Product not found"); // Handle this case
+            return ResponseEntity.status(400).body(new ApiResponse("Product not found"));
         }
         Integer productPrice =product.getPrice();
 //        Integer productPrice = productService.getProductById(merchantStock.getProductID()).getPrice();
         if (user.getBalance() < productPrice) {
-            return ResponseEntity.status(400).body("Insufficient balance");
+            return ResponseEntity.status(400).body(new ApiResponse("Insufficient balance"));
         }
         // Deduct the price from user balance
         user.deductBalance(Double.valueOf(productPrice));
@@ -86,7 +86,7 @@ public class UserController {
         // Reduce the stock from MerchantStock
         merchantStockService.reduceStock(productId,merchantId);
 
-        return ResponseEntity.status(200).body("Product Purchased Successfully");
+        return ResponseEntity.status(200).body(new ApiResponse("Product Purchased Successfully"));
     }
 
 
@@ -116,17 +116,17 @@ public class UserController {
         }
         Product product = productService.getProductById(productId);
         if (product == null) {
-            return ResponseEntity.status(400).body("Invalid product ID");
+            return ResponseEntity.status(400).body(new ApiResponse("Invalid product ID"));
         }
         if (quantity<=0){
             return ResponseEntity.status(400).body(new ApiResponse("Quantity must be greater than zero"));
         }
         MerchantStock merchantStock=merchantStockService.getMerchantStockByProductId(productId);
         if (merchantStock == null) {
-            return ResponseEntity.status(400).body("Merchant stock not found for the product");
+            return ResponseEntity.status(400).body(new ApiResponse("Merchant stock not found for the product"));
         }
         if (quantity > merchantStock.getStock()) {
-            return ResponseEntity.status(400).body("The quantity is not available");
+            return ResponseEntity.status(400).body(new ApiResponse("The quantity is not available"));
         }
 
         // Reduce the stock
@@ -136,7 +136,7 @@ public class UserController {
         // Add the product to the user's shopping cart
         shoppingCartItemService.addItem(product, quantity);
 
-        return ResponseEntity.status(200).body("Product added to cart");
+        return ResponseEntity.status(200).body(new ApiResponse("Product added to cart"));
     }
 
     @PostMapping("/remove-from-cart")
@@ -151,7 +151,7 @@ public class UserController {
         }
         shoppingCartItemService.removeItem(product);
 
-        return ResponseEntity.status(200).body("Product removed from cart");
+        return ResponseEntity.status(200).body(new ApiResponse("Product removed from cart"));
     }
 
     @GetMapping("/view-cart")
@@ -204,7 +204,7 @@ public class UserController {
         Double oldtotalCost = shoppingCartItemService.calculateTotalCost();
 
         if (user.getBalance() < totalCost) {
-            return ResponseEntity.status(400).body("Insufficient balance");
+            return ResponseEntity.status(400).body(new ApiResponse("Insufficient balance"));
         }
         boolean isCartItemEmpty=shoppingCartItemService.isCartEmpty();
         if (isCartItemEmpty){
@@ -242,7 +242,7 @@ public class UserController {
 
 //        return ResponseEntity.status(200).body("Checkout successful");
         // Create an invoice object with applied discount and coupon details
-        Invoice invoice = new Invoice("INVOICE",oldtotalCost, appliedCoupon, appliedDiscount, totalCost - discountAmount - couponAmount);
+        Invoice invoice = new Invoice("INVOICE",oldtotalCost, appliedCoupon, appliedDiscount, totalCost );
 
         // Return success message along with invoice details
         String message = "Checkout successful. Total cost: " + oldtotalCost + ", Discount: " + discountAmount + ", Coupon: " + couponAmount + ".";
