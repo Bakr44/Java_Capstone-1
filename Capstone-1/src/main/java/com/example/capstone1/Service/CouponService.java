@@ -24,7 +24,7 @@ public class CouponService {
                 .orElse(null);
     }
 
-    public double calculateDiscountedPrice(double originalPrice, String couponCode) {
+    public double calculateCouponPrice(double originalPrice, String couponCode) {
         Optional<Coupon> couponOptional = coupons.stream()
                 .filter(coupon -> coupon.getCode().equals(couponCode))
                 .findFirst();

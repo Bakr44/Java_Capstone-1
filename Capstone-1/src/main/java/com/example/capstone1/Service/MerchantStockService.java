@@ -1,6 +1,9 @@
 package com.example.capstone1.Service;
 
+import com.example.capstone1.Model.Merchant;
 import com.example.capstone1.Model.MerchantStock;
+import com.example.capstone1.Model.Product;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -9,7 +12,10 @@ import java.util.Comparator;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class MerchantStockService {
+    private final MerchantService merchantService;
+    private final ProductService productService;
 
 
     ArrayList<MerchantStock> merchantStocks=new ArrayList<>();
@@ -108,4 +114,13 @@ public class MerchantStockService {
         Collections.sort(sortedMerchantStock,comparatorName);
         return sortedMerchantStock;
     }
+
+
+    public Merchant getMerchantByIDInStock(Integer merchantID){
+        return merchantService.getMerchantByID(merchantID);
+    }
+
+public Product  getProductByIdInStock(Integer productId){
+      return   productService.getProductById(productId);
+}
 }

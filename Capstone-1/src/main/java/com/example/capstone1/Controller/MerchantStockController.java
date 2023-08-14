@@ -19,14 +19,10 @@ import org.springframework.web.bind.annotation.*;
 public class MerchantStockController {
 
     private final MerchantStockService merchantStockService;
-    private final MerchantService merchantService;
-    private final ProductService productService;
 
     @GetMapping("/get")
     public ResponseEntity getAllMerchantStock(){
         return ResponseEntity.status(200).body(merchantStockService.getAllMerchantStock());
-
-
     }
 
     @PostMapping("/add")
@@ -35,11 +31,11 @@ public class MerchantStockController {
             String message=errors.getFieldError().getDefaultMessage();
             return ResponseEntity.status(400).body(message);
         }
-        Merchant merchant=merchantService.getMerchantByID(merchantStock.getMerchantID());
+        Merchant merchant=merchantStockService.getMerchantByIDInStock(merchantStock.getMerchantID());
         if (merchant==null){
             return ResponseEntity.status(400).body(new ApiResponse("Merchant ID not Found"));
         }
-        Product product=productService.getProductById(merchantStock.getProductID());
+        Product product=merchantStockService.getProductByIdInStock(merchantStock.getProductID());
         if (product==null){
             return ResponseEntity.status(400).body(new ApiResponse("Product ID not Found"));
         }

@@ -54,8 +54,7 @@ public class UserController {
         }
 
 
-    private final MerchantStockService merchantStockService;
-    private final ProductService productService;
+
 
     @PostMapping("/buy")
     public ResponseEntity buyProduct(@RequestParam Integer userID,@RequestParam Integer productId, @RequestParam Integer merchantId){
@@ -64,14 +63,14 @@ public class UserController {
         if (user==null){
             return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
         }
-        MerchantStock merchantStock = merchantStockService.getMerchantStockProductIdMerchantId(productId, merchantId);
+        MerchantStock merchantStock = userService.getMerchantStockProductIdMerchantIdInUser(productId, merchantId);
         if (merchantStock == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Invalid product ID or merchant ID"));
         }
         if (merchantStock.getStock() <= 0) {
             return ResponseEntity.status(400).body(new ApiResponse("Product is out of stock"));
         }
-        Product product = productService.getProductById(productId);
+        Product product = userService.getProductByIdInUser(productId);
         if (product == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Product not found"));
         }
@@ -84,7 +83,7 @@ public class UserController {
         user.deductBalance(Double.valueOf(productPrice));
 
         // Reduce the stock from MerchantStock
-        merchantStockService.reduceStock(productId,merchantId);
+        userService.reduceStockInUser(productId,merchantId);
 
         return ResponseEntity.status(200).body(new ApiResponse("Product Purchased Successfully"));
     }
@@ -106,22 +105,20 @@ public class UserController {
 
     }
 
-    private final ShoppingCartItemService shoppingCartItemService;
-
     @PostMapping("/add-to-cart")
     public ResponseEntity addToCart(@RequestParam Integer userID, @RequestParam Integer productId, @RequestParam  Integer quantity) {
         User user = userService.getUserById(userID);
         if (user == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
         }
-        Product product = productService.getProductById(productId);
+        Product product = userService.getProductByIdInUser(productId);
         if (product == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Invalid product ID"));
         }
         if (quantity<=0){
             return ResponseEntity.status(400).body(new ApiResponse("Quantity must be greater than zero"));
         }
-        MerchantStock merchantStock=merchantStockService.getMerchantStockByProductId(productId);
+        MerchantStock merchantStock=userService.getMerchantStockByProductIdInUser(productId);
         if (merchantStock == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Merchant stock not found for the product"));
         }
@@ -130,11 +127,11 @@ public class UserController {
         }
 
         // Reduce the stock
-        merchantStockService.reduceStock(productId, merchantStock.getMerchantID(), quantity);
+        userService.reduceStockInUser(productId, merchantStock.getMerchantID(), quantity);
 
 
         // Add the product to the user's shopping cart
-        shoppingCartItemService.addItem(product, quantity);
+        userService.addItemInUser(product, quantity);
 
         return ResponseEntity.status(200).body(new ApiResponse("Product added to cart"));
     }
@@ -145,11 +142,11 @@ public class UserController {
         if (user==null){
             return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
         }
-        Product product = productService.getProductById(productId);
+        Product product = userService.getProductByIdInUser(productId);
         if (product == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Product not found"));
         }
-        shoppingCartItemService.removeItem(product);
+        userService.removeItemInUser(product);
 
         return ResponseEntity.status(200).body(new ApiResponse("Product removed from cart"));
     }
@@ -160,37 +157,13 @@ public class UserController {
         if (user == null) {
             return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
         }
-        ArrayList<ShoppingCartItem> cartItems = shoppingCartItemService.getItems();
 
-        // Create a response object or DTO to send cart items
-        ArrayList<CartItemResponse> cartItemResponses = new ArrayList<>();
-        for (ShoppingCartItem cartItem : cartItems) {
-            Product product = cartItem.getProduct();
-            int quantity = cartItem.getQuantity();
-            double itemTotal = product.getPrice() * quantity;
-
-            CartItemResponse cartItemResponse = new CartItemResponse(
-                    product.getId(),
-                    product.getName(),
-                    product.getPrice(),
-                    quantity,
-                    itemTotal
-            );
-            cartItemResponses.add(cartItemResponse);
-        }
-
-        CartViewResponse cartViewResponse = new CartViewResponse(
-                user.getUserName(),
-                cartItemResponses,
-                shoppingCartItemService.calculateTotalCost()
-        );
+        CartViewResponse cartViewResponse=userService.cartViewResponse(userID);
 
         return ResponseEntity.status(200).body(cartViewResponse);
         // Return ResponseEntity with cart items
     }
 
-    private final DiscountService discountService;
-    private final CouponService couponService;
 
     @PostMapping("/checkout")
     public ResponseEntity checkout(@RequestParam(required = false) Integer userID,  @RequestParam String discountName,
@@ -200,52 +173,30 @@ public class UserController {
             return ResponseEntity.status(400).body(new ApiResponse("Invalid user"));
         }
 
-        Double totalCost = shoppingCartItemService.calculateTotalCost();
-        Double oldtotalCost = shoppingCartItemService.calculateTotalCost();
+        Double totalCost = userService.calculateTotalCostInUser();
+        Double oldtotalCost = userService.calculateTotalCostInUser();
 
         if (user.getBalance() < totalCost) {
             return ResponseEntity.status(400).body(new ApiResponse("Insufficient balance"));
         }
-        boolean isCartItemEmpty=shoppingCartItemService.isCartEmpty();
+        boolean isCartItemEmpty=userService.isCartEmptyInuser();
         if (isCartItemEmpty){
             return ResponseEntity.status(400).body(new ApiResponse("Cart is empty"));
         }
 
         // Initialize variables to store discount and coupon details
-        Discount appliedDiscount = null;
-        Double discountAmount = 0.0;
-        Coupon appliedCoupon = null;
-        Double couponAmount = 0.0;
+      Double newtotalCost=userService.totalCostInUser(discountName,couponCode,totalCost);
 
-        // Apply discount if discountName is provided
-        if (discountName != null) {
-            appliedDiscount = discountService.getDiscountByName(discountName);
-            if (appliedDiscount != null) {
-                discountAmount = discountService.calculateDiscountedPrice(totalCost, discountName);
-                totalCost -= discountAmount;
-            }
-        }
-
-        // Apply coupon if couponCode is provided
-        if (couponCode != null) {
-            appliedCoupon = couponService.getCouponByCode(couponCode);
-            if (appliedCoupon != null) {
-                couponAmount = couponService.calculateDiscountedPrice(totalCost, couponCode);
-                totalCost -= couponAmount;
-            }
-        }
         // Deduct the total cost from user's balance
-        user.deductBalance(totalCost);
+        user.deductBalance(newtotalCost);
 
         // Clear the shopping cart
-        shoppingCartItemService.clearCart();
+        userService.clearCartInUser();
 
-//        return ResponseEntity.status(200).body("Checkout successful");
         // Create an invoice object with applied discount and coupon details
-        Invoice invoice = new Invoice("INVOICE",oldtotalCost, appliedCoupon, appliedDiscount, totalCost );
-
+        Invoice invoice=userService.generateInvoice(discountName,couponCode,newtotalCost);
         // Return success message along with invoice details
-        String message = "Checkout successful. Total cost: " + oldtotalCost + ", Discount: " + discountAmount + ", Coupon: " + couponAmount + ".";
+        String message = "Checkout successful. Total cost: " + oldtotalCost;
         return ResponseEntity.status(200).body(message + "\n" + invoice.toString());
     }
 

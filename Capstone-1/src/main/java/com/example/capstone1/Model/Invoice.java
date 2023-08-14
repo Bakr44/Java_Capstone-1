@@ -7,7 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class Invoice {
     private String invoiceNumber;
-    private double totalCost;
     private Coupon appliedCoupon;
     private Discount appliedDiscount;
     private double discountedTotalCost;

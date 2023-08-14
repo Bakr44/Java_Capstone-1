@@ -79,27 +79,11 @@ private final ProductService productService;
           String message=errors.getFieldError().getDefaultMessage();
           return ResponseEntity.status(400).body(message);
       }
-
         Product product = productService.getProductById(productId);
         if (product == null) {
             return ResponseEntity.status(400).body("Product not found");
     }
-        ProductReview newReview = new ProductReview(productReview.getReviewerName(), productReview.getRating(), productReview.getReviewText());
-//        if (product.getReviews()==null){
-//            return ResponseEntity.status(400).body("Product not found");
-//        }
-        if (product.getReviews() == null) {
-            product.setReviews(new ArrayList<>()); // Initialize the reviews list
-        }
-        product.getReviews().add(newReview);
-
-        double totalRating = product.getReviews().stream()
-                .mapToInt(ProductReview::getRating).sum();
-
-        int totalReviews = product.getReviews().size();
-        double averageRating = (double) totalRating / totalReviews;
-        product.setAverageRating(averageRating);
-
+        productService.addReview(productId,productReview);
         return ResponseEntity.status(200).body("Review added successfully");
     }
 

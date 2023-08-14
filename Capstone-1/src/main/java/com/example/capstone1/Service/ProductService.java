@@ -1,6 +1,7 @@
 package com.example.capstone1.Service;
 
 import com.example.capstone1.Model.Product;
+import com.example.capstone1.Model.ProductReview;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -68,5 +69,21 @@ public class ProductService {
             }
         }
         return null; // Return null if product with given ID is not found
+    }
+
+    public void addReview(Integer productId,ProductReview productReview){
+        Product product = getProductById(productId);
+        ProductReview newReview = new ProductReview(productReview.getReviewerName(), productReview.getRating(), productReview.getReviewText());
+        if (product.getReviews() == null) {
+            product.setReviews(new ArrayList<>()); // Initialize the reviews list
+        }
+        product.getReviews().add(newReview);
+
+        double totalRating = product.getReviews().stream()
+                .mapToInt(ProductReview::getRating).sum();
+
+        int totalReviews = product.getReviews().size();
+        double averageRating = (double) totalRating / totalReviews;
+        product.setAverageRating(averageRating);
     }
 }
